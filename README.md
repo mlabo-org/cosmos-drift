@@ -4,7 +4,9 @@
 
 A Claude Code mod that turns the Claude desktop app's Code tab (and the mobile app) into space: ink-blue surfaces with starlight accents, and an animated SVG backdrop that follows the context window. With room to spare the ship rests under the Milky Way; as the window fills it goes to warp, stars streaming out from the centre of the screen faster and denser at each level, until red alert pulses at the edges near the limit, a hint to start a fresh session. The terminal and editors draw no themes, so the mod does nothing there.
 
-![Full warp with red alert behind a Claude Code conversation in the desktop app](docs/warp-in-app.jpg)
+[![Full warp with red alert behind a Claude Code conversation in the desktop app](docs/warp-in-app.jpg)](docs/demo-en.mp4)
+
+**Demo video:** [docs/demo-en.mp4](docs/demo-en.mp4) (36 s, Japanese narration with English subtitles; [Japanese version](docs/demo-ja.mp4)). The levels are switched with `/cosmos-level` for the recording. It was recorded before `/cosmos-center` existed, so the centre of warp sits left of the chat in it.
 
 | Context used | Level | Sky |
 | --- | --- | --- |
@@ -46,7 +48,7 @@ A new session picks it up; an open one loads it with `/reload-plugins`. Check it
 - `hooks/scene.ts`: builds a level's scene: the Milky Way at rest, or deep space with the warp streaks, glow and red alert (about 101,000 characters at rest, 26,000-70,000 at warp; the scene limit is 131,072).
 - `hooks/sky.ts`: the two generated skies, `SKY` (Milky Way) and `SPACE` (stars only, for warp). `tools/make_cosmos.py` regenerates them (seeded, so the same sky each time): `python3 tools/make_cosmos.py`.
 - `types/index.d.ts`: the mod's state (`level`, `forced`).
-- `docs/`: the pictures in this README. `warp-in-app.jpg` is the desktop app at level 5; `levels.jpg` shows each level's scene drawn in Chrome from the same SVG the mod hands the app.
+- `docs/`: the pictures and videos in this README. `warp-in-app.jpg` is the desktop app at level 5; `levels.jpg` shows each level's scene drawn in Chrome from the same SVG the mod hands the app; `demo-en.mp4` and `demo-ja.mp4` are the demo recorded in the desktop app.
 - `cosmos.test.tsx`: `claude plugin test .` checks the levels, the limit, warp getting faster, `/cosmos-level` and a turn speeding the ship up.
 - `hooks/make-colors.js` and `hooks/make-colors.d.ts`: the palette helper Claude Code's built-in plugin-authoring skill hands out for theme mods, copied unchanged. It is Anthropic's, not part of this project, and not covered by its license.
 

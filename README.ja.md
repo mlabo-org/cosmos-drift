@@ -4,7 +4,9 @@
 
 Claude デスクトップアプリの Code タブ（とモバイルアプリ）を宇宙にする Claude Code の mod です。画面は墨のような紺に星明かりの青をアクセントにした色になり、背景には SVG のアニメーションが流れます。この背景は、コンテキストの使用量に合わせて変わります。余裕のあるうちは、天の川の下で停船中。埋まってくるとワープに入り、画面の中心から星が放射状に流れ出して、段階が上がるごとに速く、密になります。上限が近づくと、画面の縁が赤く明滅するレッドアラート。そろそろ新しいセッションを開け、の合図です。ターミナルとエディタはテーマを描かないので、そこでは何も起きません。
 
-![デスクトップアプリの Claude Code の会話の後ろで、全速ワープとレッドアラートが出ている画面](docs/warp-in-app.jpg)
+[![デスクトップアプリの Claude Code の会話の後ろで、全速ワープとレッドアラートが出ている画面](docs/warp-in-app.jpg)](docs/demo-ja.mp4)
+
+**デモ動画：** [docs/demo-ja.mp4](docs/demo-ja.mp4)（36秒、日本語のナレーション。[英語字幕版](docs/demo-en.mp4)）。録画のために、段階は `/cosmos-level` で切り替えています。`/cosmos-center` を入れる前に録ったので、動画のワープの中心はチャット画面より左に寄っています。
 
 | コンテキストの使用量 | 段階 | 空のようす |
 | --- | --- | --- |
@@ -46,7 +48,7 @@ claude plugin install cosmos-drift --marketplace mlabo-org/cosmos-drift
 - `hooks/scene.ts`：段階ごとのシーンを組み立てます。停船中は天の川、ワープ中は星空に光の筋・前方の光・レッドアラートを重ねます（停船中が約101,000文字、ワープ中が26,000〜70,000文字。シーンの上限は131,072文字）。
 - `hooks/sky.ts`：生成した2つの空、`SKY`（天の川）と `SPACE`（ワープ用の星だけの空）。`tools/make_cosmos.py` で作り直せます（乱数の種を固定しているので、毎回同じ空になります）：`python3 tools/make_cosmos.py`
 - `types/index.d.ts`：mod が持つ状態（`level`、`forced`）の型。
-- `docs/`：この README の画像。`warp-in-app.jpg` は段階5のデスクトップアプリの画面、`levels.jpg` は、mod がアプリに渡すのと同じ SVG を Chrome で描いた各段階の空です。
+- `docs/`：この README の画像と動画。`warp-in-app.jpg` は段階5のデスクトップアプリの画面、`levels.jpg` は、mod がアプリに渡すのと同じ SVG を Chrome で描いた各段階の空、`demo-ja.mp4` と `demo-en.mp4` は、デスクトップアプリで録ったデモ動画です。
 - `cosmos.test.tsx`：`claude plugin test .` で、段階の区切り、文字数の上限、段階ごとにワープが速くなること、`/cosmos-level`、ターン中に加速することを確かめます。
 - `hooks/make-colors.js` と `hooks/make-colors.d.ts`：Claude Code に入っている plugin-authoring スキルが、テーマ用の mod のために配っている色の補助ファイルです。手を加えずに写しています。Anthropic のもので、このプロジェクトの一部ではなく、このプロジェクトのライセンスの対象外です。
 
