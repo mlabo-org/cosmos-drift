@@ -29,14 +29,20 @@ const seeded = (seed: number) => {
   }
 }
 
+// The desktop app draws the backdrop under the whole window, sidebar included, so the
+// window's centre sits left of the chat by half the sidebar (188 pt measured on the
+// 5.11492.5 app). Warp radiates from the chat's centre instead; mobile has no sidebar.
+export const DESKTOP_CENTRE_OFFSET = 94
+
 // A streak points away from the centre: bright head at the origin, tail toward the centre.
 // CSS scales it from a dot to full length while it flies out (keyframes `warp` in the sky).
+// Units here are screen pixels: the warp layer is not scaled with the sky picture.
 const streak = (angle: number, seconds: number, delay: number, length: number, width: number) =>
-  `<g transform="translate(800 500) rotate(${angle.toFixed(1)})">` +
+  `<g transform="rotate(${angle.toFixed(1)})">` +
   `<g class="wp" style="animation-duration:${seconds.toFixed(2)}s;animation-delay:-${delay.toFixed(2)}s">` +
   `<path d="M0 0 L-${length} -${width.toFixed(1)} L-${length} ${width.toFixed(1)}Z" fill="url(#streak)"/></g></g>`
 
-export const scene = (level: number): string => {
+export const scene = (level: number, centreOffset = 0): string => {
   const index = Math.max(0, Math.min(LEVELS - 1, level))
   if (index === 0) {
     return `${SKY}</svg>`
@@ -53,9 +59,13 @@ export const scene = (level: number): string => {
 
   // The glow ahead of the ship, and the red edge that pulses at red alert.
   const core = warp.core
-    ? `<ellipse class="hum" cx="800" cy="500" rx="${120 + index * 40}" ry="${80 + index * 26}" fill="url(#core)"/>`
+    ? `<ellipse class="hum" cx="0" cy="0" rx="${120 + index * 40}" ry="${80 + index * 26}" fill="url(#core)"/>`
     : ''
-  const alert = warp.alert ? '<rect class="pulse" width="1600" height="1000" fill="url(#alert)"/>' : ''
+  const alert = warp.alert ? '<rect class="pulse" width="100%" height="100%" fill="url(#alert)"/>' : ''
+  // A layer whose origin is the window's centre, moved over to the chat's centre.
+  const layer =
+    `<svg x="50%" y="50%" overflow="visible"><g transform="translate(${centreOffset} 0)">` +
+    `${core}${parts.join('')}</g></svg>`
 
-  return `${SPACE}${core}${parts.join('')}${alert}</svg>`
+  return `${SPACE}${layer}${alert}</svg>`
 }

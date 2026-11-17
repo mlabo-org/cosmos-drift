@@ -2,7 +2,7 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register, ThemeSetArgs } from 'claude-code'
 
 import { makeColors } from './make-colors.js'
-import { LEVELS, levelOf, scene } from './scene.js'
+import { DESKTOP_CENTRE_OFFSET, LEVELS, levelOf, scene } from './scene.js'
 
 // A clear night far from town: ink-blue sky, starlight accents.
 const { theme, problems } = makeColors({
@@ -97,7 +97,7 @@ export const register: Register = on => {
     const { Svg } = $.ui.resolve(e)
     return (
       <Svg
-        source={scene(shown)}
+        source={scene(shown, e.surface === 'desktop' ? DESKTOP_CENTRE_OFFSET : 0)}
         alt={shown === 0 ? '斜めに横たわる天の川と、またたく星' : shown === 5 ? '全速のワープで星が放射状に流れ、画面の縁が赤く明滅する' : 'ワープで星が画面の中心から放射状に流れる'}
         isInteractive
       />

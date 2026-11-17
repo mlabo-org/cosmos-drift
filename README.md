@@ -55,6 +55,7 @@ A new session picks it up; an open one loads it with `/reload-plugins`. Check it
 - One theme stands per session; another theme mod set later replaces this one.
 - With the OS "Reduce motion" setting on, the stars stop and the warp streaks are hidden.
 - Dark only: the look forces dark mode while it is on.
+- On the desktop app, warp radiates from the chat, not from the window: the app draws the backdrop under the sidebar too, so the centre is moved 94 pt right of the window's centre, half the sidebar's width (`DESKTOP_CENTRE_OFFSET` in `hooks/scene.ts`). The mod cannot see the sidebar, so with it closed the centre sits that much right of the chat. The mobile app has no sidebar and gets no offset.
 - Only one theme mod at a time: remove another theme mod before adding this one, since a mod removed later clears the theme.
 
 ## License

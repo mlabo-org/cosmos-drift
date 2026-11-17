@@ -100,3 +100,10 @@ test('the ship speeds up as the window fills during a turn', async ($, on) => {
   await $.turn.complete({ turnId: 't1', reason: 'end_turn', answer: '', text: '' } as any)
   expect(count(await drawn($, 'desktop'), 'wp')).toBe(300)
 })
+
+test('warp radiates from the chat, right of the sidebar, on desktop only', async ($, on) => {
+  engine(on, { percent: 70 })
+  await $.session.start({ cwd: '/', surface: 'desktop', isInteractive: true })
+  expect((await drawn($, 'desktop')).includes('<g transform="translate(94 0)">')).toBe(true)
+  expect((await drawn($, 'mobile')).includes('<g transform="translate(0 0)">')).toBe(true)
+})
