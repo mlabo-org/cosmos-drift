@@ -1,5 +1,9 @@
 {
   "name": "cosmos-drift",
-  "description": "Claude Code mod (desktop and mobile Code tab): a dark space theme with starlight colors and an animated SVG backdrop of the Milky Way, twinkling stars and an occasional shooting star.",
-  "author": { "name": "Makoto Suzuki", "url": "https://github.com/mlabo-org" }
+  "description": "Claude Code mod (desktop and mobile Code tab): a dark space theme whose Milky Way sky fills with shooting stars as the context window fills, turning into a meteor shower with a reddening horizon near the limit. /cosmos-level previews a level.",
+  "author": {
+    "name": "Makoto Suzuki",
+    "url": "https://github.com/mlabo-org"
+  },
+  "types": "./types/index.d.ts"
 }

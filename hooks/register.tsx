@@ -1,7 +1,8 @@
-import type { Register, ThemeSetArgs } from 'claude-code'
+import { atom, read, update } from 'claude-code'
+import type { EngineInterface, Register, ThemeSetArgs } from 'claude-code'
 
 import { makeColors } from './make-colors.js'
-import { SCENE } from './scene.js'
+import { LEVELS, levelOf, scene } from './scene.js'
 
 // A clear night far from town: ink-blue sky, starlight accents.
 const { theme, problems } = makeColors({
@@ -25,7 +26,22 @@ const { theme, problems } = makeColors({
 
 const LOOK: ThemeSetArgs = {
   colors: theme,
-  backdrop: { scene: 'milky-way', glass: { blur: 14, tint: '#080b1a', opacity: 0.55 } },
+  backdrop: { scene: 'milky-way', glass: { blur: 8, tint: '#080b1a', opacity: 0.45 } },
+}
+
+// The sky's level follows the context window; /cosmos-level can pin one.
+const level = atom({ plugin: 'cosmos-drift', key: 'level' } as const, 0)
+const forced = atom({ plugin: 'cosmos-drift', key: 'forced' } as const, null)
+
+// Reads the context window's fill and moves the sky only when its level changes.
+const follow = async ($: EngineInterface) => {
+  const { context } = await $.session.usage()
+  const percent =
+    context.percent ?? (context.tokens !== undefined && context.window > 0 ? (context.tokens / context.window) * 100 : 0)
+  const next = levelOf(percent)
+  if ((await read($, level)) !== next) {
+    await update($, level, () => next)
+  }
 }
 
 export const register: Register = on => {
@@ -38,14 +54,53 @@ export const register: Register = on => {
     if (!set.isDrawn) {
       $.ui.status(set.reason)
     }
+    await $.command.register({
+      name: 'cosmos-level',
+      description: 'Preview the night sky at a context level: 0 (quiet) to 5 (meteor shower), or auto',
+    })
+    await follow($)
     return next(e)
   })
 
-  on('ui.render', { component: 'Backdrop' }, ($, e, next) => {
+  // Before each model request of a turn, and once the turn's last answer is in.
+  on('turn.step', async function* ($, e, next) {
+    await follow($)
+    return yield* next(e)
+  })
+
+  on('turn.complete', async ($, e, next) => {
+    const done = await next(e)
+    await follow($)
+    return done
+  })
+
+  on('command.run', { command: 'cosmos-level' }, async ($, e) => {
+    const word = e.args.trim()
+    if (word === '' || word === 'auto') {
+      await update($, forced, () => null)
+      return { text: `the sky follows the context window again (now level ${await read($, level)}).` }
+    }
+    const asked = Number(word)
+    if (!Number.isInteger(asked) || asked < 0 || asked >= LEVELS) {
+      return { text: `give a level from 0 to ${LEVELS - 1}, or auto.` }
+    }
+    await update($, forced, () => asked)
+    return { text: `the sky shows level ${asked} until /cosmos-level auto.` }
+  })
+
+  on('ui.render', { component: 'Backdrop' }, async ($, e, next) => {
     if ((e.surface !== 'desktop' && e.surface !== 'mobile') || e.props.scene !== 'milky-way') {
       return next(e)
     }
+    const pinned = await read($, forced)
+    const shown = pinned ?? (await read($, level))
     const { Svg } = $.ui.resolve(e)
-    return <Svg source={SCENE} alt="斜めに横たわる天の川と、ときどき流れる流れ星" isInteractive />
+    return (
+      <Svg
+        source={scene(shown)}
+        alt={shown >= 4 ? '天の川に流星群が降り、空の端が赤らむ夜空' : '斜めに横たわる天の川と、ときどき流れる流れ星'}
+        isInteractive
+      />
+    )
   })
 }
