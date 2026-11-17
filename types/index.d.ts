@@ -1,4 +1,4 @@
-// 0 (quiet sky) to 5 (meteor shower), from the context window's fill (levelOf in hooks/scene.ts)
+// 0 (at rest) to 5 (full warp, red alert), from the context window's fill (levelOf in hooks/scene.ts)
 export type CosmosLevel = number
 
 declare module 'claude-code' {

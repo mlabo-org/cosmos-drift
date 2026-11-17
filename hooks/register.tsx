@@ -56,7 +56,7 @@ export const register: Register = on => {
     }
     await $.command.register({
       name: 'cosmos-level',
-      description: 'Preview the night sky at a context level: 0 (quiet) to 5 (meteor shower), or auto',
+      description: 'Preview the sky at a context level: 0 (at rest) to 5 (full warp, red alert), or auto',
     })
     await follow($)
     return next(e)
@@ -98,7 +98,7 @@ export const register: Register = on => {
     return (
       <Svg
         source={scene(shown)}
-        alt={shown >= 4 ? '天の川に流星群が降り、空の端が赤らむ夜空' : '斜めに横たわる天の川と、ときどき流れる流れ星'}
+        alt={shown === 0 ? '斜めに横たわる天の川と、またたく星' : shown === 5 ? '全速のワープで星が放射状に流れ、画面の縁が赤く明滅する' : 'ワープで星が画面の中心から放射状に流れる'}
         isInteractive
       />
     )

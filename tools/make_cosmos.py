@@ -1,6 +1,8 @@
-# Writes hooks/sky.ts: the Milky Way sky without its shooting stars and closing tag.
-# hooks/scene.ts adds the meteors for the context-fill level. Usage: python3 tools/make_cosmos.py
-import random, math, json, sys
+# Writes hooks/sky.ts: the two skies hooks/scene.ts builds on, both without their closing tag.
+#   SKY   - at rest: the Milky Way and twinkling stars (level 0)
+#   SPACE - at warp: deep space with scattered stars; scene.ts adds the warp streaks (levels 1-5)
+# Seeded, so the same sky every run. Usage: python3 tools/make_cosmos.py
+import random, math, json, os
 random.seed(11)
 W,H=1600,1000; cx,cy=800,500; ang=math.radians(-28)
 def band_point(spread):
@@ -21,14 +23,15 @@ for i in range(170):
 # a few bright stars with a soft glow
 bright="".join(f'<circle class="tw" cx="{x}" cy="{y}" r="2.2" fill="#fff" filter="url(#glow)" style="animation-duration:{d}s"/>' for x,y,d in [(230,180,5.5),(1380,760,6.5),(1210,140,4.8),(380,820,7.2)])
 deg=math.degrees(ang)
-svg=f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" preserveAspectRatio="xMidYMid slice">
+
+head=f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" preserveAspectRatio="xMidYMid slice">
 <defs>
 <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#03040b"/><stop offset=".5" stop-color="#080b1d"/><stop offset="1" stop-color="#05060f"/></linearGradient>
-<linearGradient id="tail" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#9fb4ff" stop-opacity="0"/><stop offset=".55" stop-color="#d7e3ff" stop-opacity=".75"/><stop offset="1" stop-color="#ffffff"/></linearGradient>
-<filter id="trail" x="-20%" y="-400%" width="140%" height="900%"><feGaussianBlur stdDeviation="3.5"/></filter>
+<linearGradient id="streak" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8fb0ff" stop-opacity="0"/><stop offset=".6" stop-color="#cfdcff" stop-opacity=".8"/><stop offset="1" stop-color="#ffffff"/></linearGradient>
+<radialGradient id="core" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#dfe8ff" stop-opacity=".55"/><stop offset=".35" stop-color="#6f86ff" stop-opacity=".18"/><stop offset="1" stop-color="#6f86ff" stop-opacity="0"/></radialGradient>
+<radialGradient id="alert" cx=".5" cy=".5" r=".72"><stop offset=".55" stop-color="#ff2a3a" stop-opacity="0"/><stop offset="1" stop-color="#ff2a3a" stop-opacity=".6"/></radialGradient>
 <filter id="haze" x="-30%" y="-80%" width="160%" height="260%"><feGaussianBlur stdDeviation="38"/></filter>
 <filter id="haze2" x="-30%" y="-80%" width="160%" height="260%"><feGaussianBlur stdDeviation="16"/></filter>
-<radialGradient id="dawn" cx="0" cy="1" r="1.2"><stop offset="0" stop-color="#ff7a59" stop-opacity=".85"/><stop offset=".45" stop-color="#c2417a" stop-opacity=".35"/><stop offset="1" stop-color="#c2417a" stop-opacity="0"/></radialGradient>
 <filter id="glow" x="-300%" y="-300%" width="700%" height="700%"><feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
 </defs>
 <style>
@@ -36,12 +39,16 @@ svg=f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" preserveAs
 @keyframes tw{{0%,100%{{opacity:.95}}50%{{opacity:.25}}}}
 .core{{animation:breathe 22s ease-in-out infinite}}
 @keyframes breathe{{0%,100%{{opacity:.75}}50%{{opacity:1}}}}
-.ss{{opacity:0;animation-name:shoot;animation-timing-function:ease-out;animation-iteration-count:infinite}}
-@keyframes shoot{{0%{{transform:translateX(0);opacity:0}}0.6%{{opacity:1}}3.2%{{transform:translateX(520px);opacity:0}}100%{{transform:translateX(520px);opacity:0}}}}
-.sh{{opacity:0;animation-name:shower;animation-timing-function:ease-out;animation-iteration-count:infinite}}\n@keyframes shower{{0%{{transform:translateX(0);opacity:0}}2%{{opacity:1}}22%{{transform:translateX(540px);opacity:0}}100%{{transform:translateX(540px);opacity:0}}}}\n.dawn{{animation:breathe 9s ease-in-out infinite}}\n@media (prefers-reduced-motion: reduce){{*{{animation:none!important}}.ss,.sh{{display:none}}}}
+.wp{{opacity:0;animation-name:warp;animation-timing-function:cubic-bezier(.55,0,1,.45);animation-iteration-count:infinite}}
+@keyframes warp{{0%{{transform:translateX(30px) scaleX(.05);opacity:0}}12%{{opacity:1}}100%{{transform:translateX(1050px) scaleX(1);opacity:.9}}}}
+.pulse{{animation:pulse 1.6s ease-in-out infinite}}
+@keyframes pulse{{0%,100%{{opacity:.25}}50%{{opacity:1}}}}
+.hum{{animation:breathe 3s ease-in-out infinite}}
+@media (prefers-reduced-motion: reduce){{*{{animation:none!important}}.wp{{display:none}}}}
 </style>
 <rect width="{W}" height="{H}" fill="url(#sky)"/>
-<g transform="rotate({deg:.1f} {cx} {cy})">
+'''
+milky=f'''<g transform="rotate({deg:.1f} {cx} {cy})">
 <g class="core">
 <ellipse cx="{cx}" cy="{cy}" rx="1100" ry="150" fill="#2a3170" opacity=".55" filter="url(#haze)"/>
 <ellipse cx="{cx}" cy="{cy}" rx="900" ry="85" fill="#5b4f8c" opacity=".5" filter="url(#haze)"/>
@@ -50,11 +57,12 @@ svg=f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" preserveAs
 </g>
 <path d="M{cx-900} {cy+6} C{cx-500} {cy-30} {cx-250} {cy+40} {cx} {cy+4} S{cx+500} {cy-36} {cx+900} {cy+10}" stroke="#05060f" stroke-width="26" fill="none" opacity=".75" filter="url(#haze2)"/>
 </g>
-{"".join(band)}
-{"".join(field)}
-{bright}
 '''
-import os
+sky=head+milky+"".join(band)+"".join(field)+bright
+space=head+"".join(field)+bright
 root=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-open(os.path.join(root,"hooks","sky.ts"),"w").write("// Generated by tools/make_cosmos.py (random.seed(11)); do not edit by hand.\nexport const SKY = "+json.dumps(svg)+"\n")
-print(len(svg))
+open(os.path.join(root,"hooks","sky.ts"),"w").write(
+    "// Generated by tools/make_cosmos.py (random.seed(11)); do not edit by hand.\n"
+    "export const SKY = "+json.dumps(sky)+"\n"
+    "export const SPACE = "+json.dumps(space)+"\n")
+print(len(sky), len(space))

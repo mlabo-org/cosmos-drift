@@ -1,22 +1,23 @@
-import { SKY } from './sky.js'
+import { SKY, SPACE } from './sky.js'
 
-// How full the context window is, in six steps: the sky gets busier as it fills.
+// How full the context window is, in six steps: at rest under the Milky Way,
+// then warp, faster at each level, up to red alert near the limit.
 export const LEVELS = 6
 const THRESHOLDS = [40, 60, 75, 85, 95] // percent at which levels 1..5 begin
 
 export const levelOf = (percent: number): number =>
   THRESHOLDS.filter(limit => percent >= limit).length
 
-type Step = { meteors: number; minSeconds: number; maxSeconds: number; dawn: number; shower: boolean }
+// One streak's flight from the centre to the edge takes `seconds`; shorter is faster.
+type Warp = { streaks: number; minSeconds: number; maxSeconds: number; length: number; core: boolean; alert: boolean }
 
-// Level 0 is the quiet sky; 4 and 5 are a meteor shower from one radiant.
-const STEPS: Step[] = [
-  { meteors: 3, minSeconds: 19, maxSeconds: 37, dawn: 0, shower: false },
-  { meteors: 5, minSeconds: 14, maxSeconds: 30, dawn: 0, shower: false },
-  { meteors: 8, minSeconds: 10, maxSeconds: 24, dawn: 0, shower: false },
-  { meteors: 12, minSeconds: 8, maxSeconds: 18, dawn: 0.15, shower: false },
-  { meteors: 20, minSeconds: 5, maxSeconds: 11, dawn: 0.4, shower: true },
-  { meteors: 30, minSeconds: 3.5, maxSeconds: 8, dawn: 0.7, shower: true },
+const WARPS: Warp[] = [
+  { streaks: 0, minSeconds: 0, maxSeconds: 0, length: 0, core: false, alert: false }, // level 0: at rest
+  { streaks: 60, minSeconds: 3.2, maxSeconds: 4.6, length: 90, core: false, alert: false },
+  { streaks: 100, minSeconds: 2.2, maxSeconds: 3.2, length: 150, core: true, alert: false },
+  { streaks: 150, minSeconds: 1.4, maxSeconds: 2.1, length: 230, core: true, alert: false },
+  { streaks: 220, minSeconds: 0.9, maxSeconds: 1.4, length: 330, core: true, alert: false },
+  { streaks: 300, minSeconds: 0.55, maxSeconds: 0.9, length: 460, core: true, alert: true },
 ]
 
 // A small seeded generator, so a level always draws the same sky.
@@ -28,47 +29,33 @@ const seeded = (seed: number) => {
   }
 }
 
-// A streak: a blurred halo under a bright tapered tail, head at the origin.
-// Widths are in the 1600x1000 sky, which a window draws a little smaller,
-// and the app's frosted glass softens them further, so they are drawn bold.
-const meteor = (x: number, y: number, angle: number, seconds: number, delay: number, cls: string, length: number, width: number) =>
-  `<g transform="translate(${x.toFixed(0)} ${y.toFixed(0)}) rotate(${angle.toFixed(0)})">` +
-  `<g class="${cls}" style="animation-duration:${seconds.toFixed(1)}s;animation-delay:-${delay.toFixed(1)}s">` +
-  `<path d="M0 0 L-${length} -${width * 2.5} L-${length} ${width * 2.5}Z" fill="url(#tail)" opacity=".55" filter="url(#trail)"/>` +
-  `<path d="M${width} 0 L-${length} -${width} L-${length} ${width}Z" fill="url(#tail)"/>` +
-  `<circle r="${(width * 1.6).toFixed(1)}" fill="#fff" filter="url(#glow)"/></g></g>`
-
-const RADIANT = { x: 1330, y: 110 }
+// A streak points away from the centre: bright head at the origin, tail toward the centre.
+// CSS scales it from a dot to full length while it flies out (keyframes `warp` in the sky).
+const streak = (angle: number, seconds: number, delay: number, length: number, width: number) =>
+  `<g transform="translate(800 500) rotate(${angle.toFixed(1)})">` +
+  `<g class="wp" style="animation-duration:${seconds.toFixed(2)}s;animation-delay:-${delay.toFixed(2)}s">` +
+  `<path d="M0 0 L-${length} -${width.toFixed(1)} L-${length} ${width.toFixed(1)}Z" fill="url(#streak)"/></g></g>`
 
 export const scene = (level: number): string => {
-  const step = STEPS[Math.max(0, Math.min(LEVELS - 1, level))] ?? STEPS[0]!
-  const random = seeded(7 + level * 101)
+  const index = Math.max(0, Math.min(LEVELS - 1, level))
+  if (index === 0) {
+    return `${SKY}</svg>`
+  }
+  const warp = WARPS[index] ?? WARPS[1]!
+  const random = seeded(7 + index * 101)
   const parts: string[] = []
 
-  for (let i = 0; i < step.meteors; i += 1) {
-    const seconds = step.minSeconds + random() * (step.maxSeconds - step.minSeconds)
-    const delay = random() * seconds
-
-    if (step.shower) {
-      // Streaks start near the radiant and fly away from it, as a real shower does.
-      const angle = 100 + random() * 95
-      const distance = 40 + random() * 320
-      const radians = (angle * Math.PI) / 180
-      const x = RADIANT.x + Math.cos(radians) * distance
-      const y = RADIANT.y + Math.sin(radians) * distance
-      parts.push(meteor(x, y, angle, seconds, delay, 'sh', 220 + Math.round(random() * 120), 3.4))
-    } else {
-      const leftward = random() < 0.6
-      const angle = leftward ? 140 + random() * 25 : 18 + random() * 25
-      const x = leftward ? 700 + random() * 800 : 120 + random() * 700
-      const y = 60 + random() * 380
-      parts.push(meteor(x, y, angle, seconds, delay, 'ss', 300, 2.8))
-    }
+  for (let i = 0; i < warp.streaks; i += 1) {
+    const seconds = warp.minSeconds + random() * (warp.maxSeconds - warp.minSeconds)
+    const length = Math.round(warp.length * (0.6 + random() * 0.8))
+    parts.push(streak(random() * 360, seconds, random() * seconds, length, 0.8 + random() * 1.6))
   }
 
-  const dawn =
-    // The level sets the group's opacity; the rect's own animation only breathes inside it.
-    step.dawn > 0 ? `<g opacity="${step.dawn}"><rect class="dawn" width="1600" height="1000" fill="url(#dawn)"/></g>` : ''
+  // The glow ahead of the ship, and the red edge that pulses at red alert.
+  const core = warp.core
+    ? `<ellipse class="hum" cx="800" cy="500" rx="${120 + index * 40}" ry="${80 + index * 26}" fill="url(#core)"/>`
+    : ''
+  const alert = warp.alert ? '<rect class="pulse" width="1600" height="1000" fill="url(#alert)"/>' : ''
 
-  return `${SKY}${dawn}${parts.join('')}</svg>`
+  return `${SPACE}${core}${parts.join('')}${alert}</svg>`
 }
