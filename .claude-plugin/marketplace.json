@@ -1,0 +1,14 @@
+{
+  "name": "cosmos-drift",
+  "description": "One plugin: cosmos-drift, a Claude Code mod that turns the desktop Code tab into a night sky with the Milky Way and shooting stars",
+  "owner": {
+    "name": "Makoto Suzuki",
+    "url": "https://github.com/mlabo-org"
+  },
+  "plugins": [
+    {
+      "name": "cosmos-drift",
+      "source": "."
+    }
+  ]
+}
