@@ -13,14 +13,26 @@ A Claude Code mod that turns the Claude desktop app's Code tab (and the mobile a
 
 The level is read from `$.session.usage()` before each model request (`turn.step`) and when a turn completes. `/cosmos-level 0`-`5` pins a level to preview it; `/cosmos-level auto` lets the sky follow the window again.
 
-## Install (this Mac)
+## Requirements
 
-```bash
-claude plugin marketplace add ~/plugins/cosmos-drift --scope user
-claude plugin install cosmos-drift@cosmos-drift --scope user
+- The Claude desktop app, whose Code tab draws the sky (the mobile app draws it too). Made and checked with Claude Code 2.1.325 in desktop app 5.11492.5; older builds may lack scene backdrops. The terminal and editors run the mod but draw no themes.
+- Nothing else: no build step, no network, no other program.
+
+## Install
+
+At the prompt of a Claude Code session:
+
+```
+/plugin install cosmos-drift --marketplace mlabo-org/cosmos-drift
 ```
 
-A new session picks it up; an open one loads it with `/reload-plugins`.
+Answer `y` to add the marketplace, then pick a scope. From a shell instead:
+
+```bash
+claude plugin install cosmos-drift --marketplace mlabo-org/cosmos-drift
+```
+
+A new session picks it up; an open one loads it with `/reload-plugins`. Check it with `/cosmos-level 5` (full warp), then `/cosmos-level auto`.
 
 ## Files
 
@@ -29,10 +41,15 @@ A new session picks it up; an open one loads it with `/reload-plugins`.
 - `hooks/sky.ts`: the two generated skies, `SKY` (Milky Way) and `SPACE` (stars only, for warp). `tools/make_cosmos.py` regenerates them (seeded, so the same sky each time): `python3 tools/make_cosmos.py`.
 - `types/index.d.ts`: the mod's state (`level`, `forced`).
 - `cosmos.test.tsx`: `claude plugin test .` checks the levels, the limit, warp getting faster, `/cosmos-level` and a turn speeding the ship up.
-- `hooks/make-colors.js`: the palette helper from Claude Code's plugin-authoring skill, copied unchanged.
+- `hooks/make-colors.js` and `hooks/make-colors.d.ts`: the palette helper Claude Code's built-in plugin-authoring skill hands out for theme mods, copied unchanged. It is Anthropic's, not part of this project, and not covered by its license.
 
 ## Notes
 
 - One theme stands per session; another theme mod set later replaces this one.
 - With the OS "Reduce motion" setting on, the stars stop and the warp streaks are hidden.
 - Dark only: the look forces dark mode while it is on.
+- Only one theme mod at a time: remove another theme mod before adding this one, since a mod removed later clears the theme.
+
+## License
+
+MIT, for everything here except `hooks/make-colors.js` and `hooks/make-colors.d.ts` (see Files).

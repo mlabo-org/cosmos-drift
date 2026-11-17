@@ -5,5 +5,8 @@
     "name": "Makoto Suzuki",
     "url": "https://github.com/mlabo-org"
   },
-  "types": "./types/index.d.ts"
+  "types": "./types/index.d.ts",
+  "homepage": "https://github.com/mlabo-org/cosmos-drift",
+  "repository": "https://github.com/mlabo-org/cosmos-drift",
+  "license": "MIT"
 }
