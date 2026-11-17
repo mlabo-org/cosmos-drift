@@ -1,6 +1,10 @@
 # cosmos-drift
 
+[日本語](README.ja.md)
+
 A Claude Code mod that turns the Claude desktop app's Code tab (and the mobile app) into space: ink-blue surfaces with starlight accents, and an animated SVG backdrop that follows the context window. With room to spare the ship rests under the Milky Way; as the window fills it goes to warp, stars streaming out from the centre of the screen faster and denser at each level, until red alert pulses at the edges near the limit, a hint to start a fresh session. The terminal and editors draw no themes, so the mod does nothing there.
+
+![Full warp with red alert behind a Claude Code conversation in the desktop app](docs/warp-in-app.jpg)
 
 | Context used | Level | Sky |
 | --- | --- | --- |
@@ -10,6 +14,8 @@ A Claude Code mod that turns the Claude desktop app's Code tab (and the mobile a
 | 75-84% | 3 | 150 streaks, 1.4-2.1 s |
 | 85-94% | 4 | 220 streaks, 0.9-1.4 s |
 | 95% and over | 5 | full warp: 300 streaks, 0.55-0.9 s, red alert at the edges |
+
+![The six levels, from the Milky Way at rest to full warp with red alert](docs/levels.jpg)
 
 The level is read from `$.session.usage()` before each model request (`turn.step`) and when a turn completes. `/cosmos-level 0`-`5` pins a level to preview it; `/cosmos-level auto` lets the sky follow the window again.
 
@@ -37,9 +43,10 @@ A new session picks it up; an open one loads it with `/reload-plugins`. Check it
 ## Files
 
 - `hooks/register.tsx`: sets the look, follows the context window, answers `/cosmos-level`, and draws the `milky-way` scene for the `Backdrop` site.
-- `hooks/scene.ts`: builds a level's scene: the Milky Way at rest, or deep space with the warp streaks, glow and red alert (at most about 90,000 characters; the scene limit is 131,072).
+- `hooks/scene.ts`: builds a level's scene: the Milky Way at rest, or deep space with the warp streaks, glow and red alert (about 101,000 characters at rest, 26,000-70,000 at warp; the scene limit is 131,072).
 - `hooks/sky.ts`: the two generated skies, `SKY` (Milky Way) and `SPACE` (stars only, for warp). `tools/make_cosmos.py` regenerates them (seeded, so the same sky each time): `python3 tools/make_cosmos.py`.
 - `types/index.d.ts`: the mod's state (`level`, `forced`).
+- `docs/`: the pictures in this README. `warp-in-app.jpg` is the desktop app at level 5; `levels.jpg` shows each level's scene drawn in Chrome from the same SVG the mod hands the app.
 - `cosmos.test.tsx`: `claude plugin test .` checks the levels, the limit, warp getting faster, `/cosmos-level` and a turn speeding the ship up.
 - `hooks/make-colors.js` and `hooks/make-colors.d.ts`: the palette helper Claude Code's built-in plugin-authoring skill hands out for theme mods, copied unchanged. It is Anthropic's, not part of this project, and not covered by its license.
 
