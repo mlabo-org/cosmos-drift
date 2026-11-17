@@ -30,9 +30,11 @@ const seeded = (seed: number) => {
 }
 
 // The desktop app draws the backdrop under the whole window, sidebar included, so the
-// window's centre sits left of the chat by half the sidebar (188 pt measured on the
-// 5.11492.5 app). Warp radiates from the chat's centre instead; mobile has no sidebar.
-export const DESKTOP_CENTRE_OFFSET = 94
+// window's centre sits left of the chat by half the sidebar. The mod cannot see the
+// sidebar, so its width is set with /cosmos-center (188 pt as first measured on the
+// 5.11492.5 app; 0 with the sidebar closed). Mobile has no sidebar.
+export const DEFAULT_SIDEBAR_WIDTH = 188
+export const MAX_SIDEBAR_WIDTH = 1200
 
 // A streak points away from the centre: bright head at the origin, tail toward the centre.
 // CSS scales it from a dot to full length while it flies out (keyframes `warp` in the sky).

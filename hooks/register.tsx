@@ -2,7 +2,7 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register, ThemeSetArgs } from 'claude-code'
 
 import { makeColors } from './make-colors.js'
-import { DESKTOP_CENTRE_OFFSET, LEVELS, levelOf, scene } from './scene.js'
+import { DEFAULT_SIDEBAR_WIDTH, LEVELS, MAX_SIDEBAR_WIDTH, levelOf, scene } from './scene.js'
 
 // A clear night far from town: ink-blue sky, starlight accents.
 const { theme, problems } = makeColors({
@@ -32,6 +32,9 @@ const LOOK: ThemeSetArgs = {
 // The sky's level follows the context window; /cosmos-level can pin one.
 const level = atom({ plugin: 'cosmos-drift', key: 'level' } as const, 0)
 const forced = atom({ plugin: 'cosmos-drift', key: 'forced' } as const, null)
+// The sidebar's width in pt, kept in $.store across sessions and mirrored here so a change redraws.
+const sidebar = atom({ plugin: 'cosmos-drift', key: 'sidebar' } as const, DEFAULT_SIDEBAR_WIDTH)
+const SIDEBAR_KEY = 'sidebarWidth'
 
 // Reads the context window's fill and moves the sky only when its level changes.
 const follow = async ($: EngineInterface) => {
@@ -57,6 +60,14 @@ export const register: Register = on => {
     await $.command.register({
       name: 'cosmos-level',
       description: 'Preview the sky at a context level: 0 (at rest) to 5 (full warp, red alert), or auto',
+    })
+    const kept = Number(await $.store.get(SIDEBAR_KEY))
+    if (Number.isFinite(kept) && kept >= 0 && kept <= MAX_SIDEBAR_WIDTH) {
+      await update($, sidebar, () => kept)
+    }
+    await $.command.register({
+      name: 'cosmos-center',
+      description: 'Centre warp on the chat: give the sidebar width in pt (0 when it is closed), or nothing to see it',
     })
     await follow($)
     return next(e)
@@ -88,6 +99,21 @@ export const register: Register = on => {
     return { text: `the sky shows level ${asked} until /cosmos-level auto.` }
   })
 
+  on('command.run', { command: 'cosmos-center' }, async ($, e) => {
+    const word = e.args.trim()
+    if (word === '') {
+      return { text: `warp is centred for a ${await read($, sidebar)} pt sidebar. /cosmos-center <width> changes it; 0 when the sidebar is closed.` }
+    }
+    const width = Number(word)
+    if (!Number.isFinite(width) || width < 0 || width > MAX_SIDEBAR_WIDTH) {
+      return { text: `give the sidebar width in pt, from 0 to ${MAX_SIDEBAR_WIDTH}.` }
+    }
+    const rounded = Math.round(width)
+    await update($, sidebar, () => rounded)
+    await $.store.set(SIDEBAR_KEY, rounded)
+    return { text: `warp is now centred for a ${rounded} pt sidebar, kept for later sessions.` }
+  })
+
   on('ui.render', { component: 'Backdrop' }, async ($, e, next) => {
     if ((e.surface !== 'desktop' && e.surface !== 'mobile') || e.props.scene !== 'milky-way') {
       return next(e)
@@ -97,7 +123,7 @@ export const register: Register = on => {
     const { Svg } = $.ui.resolve(e)
     return (
       <Svg
-        source={scene(shown, e.surface === 'desktop' ? DESKTOP_CENTRE_OFFSET : 0)}
+        source={scene(shown, e.surface === 'desktop' ? (await read($, sidebar)) / 2 : 0)}
         alt={shown === 0 ? '斜めに横たわる天の川と、またたく星' : shown === 5 ? '全速のワープで星が放射状に流れ、画面の縁が赤く明滅する' : 'ワープで星が画面の中心から放射状に流れる'}
         isInteractive
       />

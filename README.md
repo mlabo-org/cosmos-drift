@@ -17,7 +17,7 @@ A Claude Code mod that turns the Claude desktop app's Code tab (and the mobile a
 
 ![The six levels, from the Milky Way at rest to full warp with red alert](docs/levels.jpg)
 
-The level is read from `$.session.usage()` before each model request (`turn.step`) and when a turn completes. `/cosmos-level 0`-`5` pins a level to preview it; `/cosmos-level auto` lets the sky follow the window again.
+The level is read from `$.session.usage()` before each model request (`turn.step`) and when a turn completes. `/cosmos-level 0`-`5` pins a level to preview it; `/cosmos-level auto` lets the sky follow the window again. `/cosmos-center` puts the centre of warp on the chat (see Notes).
 
 ## Requirements
 
@@ -55,7 +55,7 @@ A new session picks it up; an open one loads it with `/reload-plugins`. Check it
 - One theme stands per session; another theme mod set later replaces this one.
 - With the OS "Reduce motion" setting on, the stars stop and the warp streaks are hidden.
 - Dark only: the look forces dark mode while it is on.
-- On the desktop app, warp radiates from the chat, not from the window: the app draws the backdrop under the sidebar too, so the centre is moved 94 pt right of the window's centre, half the sidebar's width (`DESKTOP_CENTRE_OFFSET` in `hooks/scene.ts`). The mod cannot see the sidebar, so with it closed the centre sits that much right of the chat. The mobile app has no sidebar and gets no offset.
+- On the desktop app, warp radiates from the chat, not from the window: the app draws the backdrop under the sidebar too, so the centre moves right by half the sidebar's width. The mod cannot see the sidebar, so you tell it the width with `/cosmos-center <width in pt>` (188 by default; `/cosmos-center 0` with the sidebar closed; `/cosmos-center` alone shows the setting). The width is kept for later sessions. The mobile app has no sidebar and gets no offset.
 - Only one theme mod at a time: remove another theme mod before adding this one, since a mod removed later clears the theme.
 
 ## License

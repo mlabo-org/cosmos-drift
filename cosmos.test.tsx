@@ -25,7 +25,14 @@ const engine = (on: any, usage: { percent: number }) => {
     value: { startedAt: 0, context: { tokens: usage.percent * 10_000, window: 1_000_000, percent: usage.percent }, rateLimits: [] },
   }))
   on('session.start', (_: unknown, e: { cwd: string }) => ({ cwd: e.cwd }))
+  // $.store across sessions, kept in a map the test can read and seed
+  on('store.get', (_: unknown, e: { key: string }) => ({ value: store.get(e.key) }))
+  on('store.set', (_: unknown, e: { key: string; value: unknown }) => {
+    store.set(e.key, e.value)
+    return { value: undefined }
+  })
 }
+let store = new Map<string, unknown>()
 
 const drawn = async ($: any, surface: 'desktop' | 'mobile') => {
   const ui = await $.ui.mount({ ...BACKDROP, surface })
@@ -106,4 +113,24 @@ test('warp radiates from the chat, right of the sidebar, on desktop only', async
   await $.session.start({ cwd: '/', surface: 'desktop', isInteractive: true })
   expect((await drawn($, 'desktop')).includes('<g transform="translate(94 0)">')).toBe(true)
   expect((await drawn($, 'mobile')).includes('<g transform="translate(0 0)">')).toBe(true)
+})
+
+test('/cosmos-center follows the sidebar width and is kept for later sessions', async ($, on) => {
+  store = new Map()
+  engine(on, { percent: 70 })
+  await $.session.start({ cwd: '/', surface: 'desktop', isInteractive: true })
+  await $.command.run({ command: 'cosmos-center', args: '300' })
+  expect((await drawn($, 'desktop')).includes('<g transform="translate(150 0)">')).toBe(true)
+  expect(store.get('sidebarWidth')).toBe(300)
+  await $.command.run({ command: 'cosmos-center', args: '0' })
+  expect((await drawn($, 'desktop')).includes('<g transform="translate(0 0)">')).toBe(true)
+  await $.command.run({ command: 'cosmos-center', args: 'wide' })
+  expect((await drawn($, 'desktop')).includes('<g transform="translate(0 0)">')).toBe(true)
+})
+
+test('a width kept from an earlier session is used at start', async ($, on) => {
+  store = new Map([['sidebarWidth', 260]])
+  engine(on, { percent: 70 })
+  await $.session.start({ cwd: '/', surface: 'desktop', isInteractive: true })
+  expect((await drawn($, 'desktop')).includes('<g transform="translate(130 0)">')).toBe(true)
 })

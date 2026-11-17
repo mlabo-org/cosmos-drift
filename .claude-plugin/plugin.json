@@ -1,6 +1,6 @@
 {
   "name": "cosmos-drift",
-  "description": "Claude Code mod (desktop and mobile Code tab): a dark space theme that follows the context window. With room to spare it rests under the Milky Way; as the window fills it goes to warp, stars streaming out from the centre faster at each level, up to red alert near the limit. /cosmos-level previews a level.",
+  "description": "Claude Code mod (desktop and mobile Code tab): a dark space theme that follows the context window. With room to spare it rests under the Milky Way; as the window fills it goes to warp, stars streaming out from the centre faster at each level, up to red alert near the limit. /cosmos-level previews a level; /cosmos-center sets the sidebar width so warp centres on the chat.",
   "author": {
     "name": "Makoto Suzuki",
     "url": "https://github.com/mlabo-org"

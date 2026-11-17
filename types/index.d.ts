@@ -7,6 +7,8 @@ declare module 'claude-code' {
       level: CosmosLevel
       // a level fixed by /cosmos-level, or null to follow the context window
       forced: CosmosLevel | null
+      // the desktop sidebar's width in pt, set by /cosmos-center; warp moves right by half of it
+      sidebar: number
     }
   }
 }
